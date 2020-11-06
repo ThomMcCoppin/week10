@@ -1,0 +1,99 @@
+<html>
+	<head>
+		<title>Bop-it!</title>
+	</head>
+	<body>
+		<p>High Score: <span id="highScoreDisplay"></span></p>
+		<p>Current Score: <span id="scoreDisplay"></span></p>
+		<p>Quick! Hit: <span id="commandDisplay"></span></p>
+		<p>Time Remaining: <span id="timerDisplay"></span></p>
+		<button style="display: none;" id="playAgainBtn">Play Again</button>
+		
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script>
+			//display the desired data, hs, score, and commands
+			//add 3 event listeners to chosen keys:
+			//have rrtimed function to set the next command
+			//if the key that is pressed = the desired command, reward a point
+			//if not, game exited, check for new HS, and ask to play again.
+			var currentScore = 0;
+			var allCommands = [
+				{name: "Q", keyCode: 113},
+				{name: "Enter", keyCode: 13},
+				{name: "Space", keyCode: 32}
+			]
+			var currentCommand;
+			var currentCommandName;
+			var commandRNG;
+			var intervalId;
+			var gameTimer = 2;
+			var highScore;
+			if (localStorage.getItem("bopitHS")!= null) {
+				highScore= localStorage.getItem("bopitHS");
+			}
+			else {
+				highScore = 0;
+			}
+			
+			$("#playAgainBtn").click(startGame);
+			
+			function startGame() {
+				currentScore = 0;
+				chooseCommand();
+				gameTimer = 2;
+				$("#playAgainBtn").css("display", "none");
+				currentScore = 0;
+				intervalId = setInterval(function(){
+					gameTimer--;
+					refreshUI();
+					checkTimer();
+				}, 1000);
+				$(document).on("keypress", function checkInput(e) {
+				if (e.which == currentCommand.keyCode) {
+					currentScore++;
+					chooseCommand();
+					gameTimer = 2;
+					refreshUI();
+				}
+				else if (e.which != currentCommand.keyCode) {
+					gameOver();
+				}
+			});
+			}
+			
+			function checkTimer() {
+				if (gameTimer <= 0) {
+					gameOver();
+				}
+			}
+			
+			function chooseCommand() {
+				commandRNG = Math.floor(Math.random() * 3);
+				currentCommand = allCommands[commandRNG];
+				refreshUI();
+			}
+			function refreshUI() {
+				$("#commandDisplay").text(currentCommand.name);
+				$("#scoreDisplay").text(currentScore);
+				$("#highScoreDisplay").text(highScore);
+				$("#timerDisplay").html(gameTimer);
+			}
+			
+			function gameOver() {
+				$(document).off("keypress");
+					$("#playAgainBtn").css("display", "inline");
+					if (currentScore >= highScore) {
+						highScore = currentScore;
+						localStorage.setItem("bopitHS", highScore);
+					}
+					refreshUI();
+					clearInterval(intervalId);
+			}
+			
+			
+			
+			startGame();
+				
+		</script>
+	</body>
+</html>
